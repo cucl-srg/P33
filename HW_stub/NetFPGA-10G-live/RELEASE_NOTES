@@ -1,0 +1,43 @@
+################################################################################
+#
+#  NetFPGA-10G http://www.netfpga.org
+#
+#  File:
+#        RELEASE_NOTES
+#
+#  Copyright notice:
+#        Copyright (C) 2010,2011 The Board of Trustees of The Leland Stanford
+#                                Junior University
+#
+GIT VERSION 5.0.1rc
+
+Before using this code, please check the release notes for 5.0.1 below
+
+
+1. Integrated test infrastructure with both_major_minor tests.
+
+We have a integrated test infrastructure for reference_router project. 
+
+both_badipchksum_packet  
+both_lpm_generic  
+both_nonip_packet       
+both_router_table
+both_invalidttl_packet   
+both_lpm_misses  
+both_nonipv4_packet     
+both_wrong_destMAC
+both_arp_misses  
+both_ipdestfilter_hit    
+both_lpm_nexthop  
+both_packet_forwarding
+
+wiki for router tests:
+https://github.com/NetFPGA/NetFPGA-public/wiki/Tests-for-reference-router
+
+wiki for simulation infrastructure:
+https://github.com/NetFPGA/NetFPGA-public/wiki/NetFPGA-10G-Simulations
+
+wiki for HW test infrastructure:
+https://github.com/NetFPGA/NetFPGA-public/wiki/HW-Tests
+
+
