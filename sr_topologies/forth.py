@@ -19,9 +19,9 @@ forth - the most simple of mininet topologies for the sr assignment.
                       +=============(r0-eth0)=============+
                       |         Student's router (r0)     |
                       |         r0-eth0: 10.0.1.1         |
- App Server 1  ===== (r0-eth1)  r0-eth1: 10.0.2.1  (r0-eth3) ===== App Server 3
-(h1, 10.0.2.2)        |         r0-eth2: 10.0.3.1         |        (h3, 10.0.4.2)
-                      |         r0-eth3: 10.0.4.1         |
+ App Server 1  ===== (r0-eth1)  r0-eth1: 10.0.2.1         |
+(h1, 10.0.2.2)        |         r0-eth2: 10.0.3.1         |        
+                      |                                   |
                       +=============(r0-eth2)=============+
                                        ||
                                        ||
@@ -38,11 +38,9 @@ Without the -s switch, ifaces/MACs/IPs:
     r0-eth0          00:00:00:00:01:01        10.0.1.1
     r0-eth1          00:00:00:00:01:02        10.0.2.1
     r0-eth2          00:00:00:00:01:03        10.0.3.1
-    r0-eth3          00:00:00:00:01:04        10.0.4.1
     h0-eth0          00:00:00:00:00:01        10.0.1.2
     h1-eth0          00:00:00:00:00:02        10.0.2.2
     h2-eth0          00:00:00:00:00:03        10.0.3.2
-    h3-eth0          00:00:00:00:00:04        10.0.4.2
 
 Caveats:
    Don't just type 
@@ -97,15 +95,13 @@ class Forth ( Topo ):
         h0 = self.addHost( 'h0', ip='10.0.1.2')
         h1 = self.addHost( 'h1', ip='10.0.2.2')
         h2 = self.addHost( 'h2', ip='10.0.3.2')
-        h3 = self.addHost( 'h3', ip='10.0.4.2')
-        
+                
         # Add the links
         info ('*** Creating links\n')
         self.addLink( r0, h0 )
         self.addLink( r0, h1 )
         self.addLink( r0, h2 )
-        self.addLink( r0, h3 )
-        
+                
 # Populate the list of topologies (so mininet can be started with
 #    $ sudo mn --custom ~/<path>/forth.py --topo forth
 # if so desired (be careful with sys.path)
@@ -149,13 +145,12 @@ if __name__ == '__main__':
     
     # Do router mode configuration
     if (not args.switch):
-        r0, h0, h1, h2, h3 = net.hosts[4], net.hosts[0], net.hosts[1], \
-                             net.hosts[2], net.hosts[3] 
-
+        r0, h0, h1, h2 = net.hosts[3], net.hosts[0], net.hosts[1], net.hosts[2] 
+	
         # Configure r0 (let the student's code override the Linux network stack &
         #               set MAC addresses of interfaces)
         info( '*** Configuring router network stack\n' )
-        for i in range(4):
+        for i in range(3):
             r0.cmd( 'ip addr flush dev r0-eth%d' % i )
             r0.cmd( 'ip -6 addr flush dev r0-eth%d' % i )
             iface_mac = '00:00:00:00:01:'+str(i+1)
@@ -164,7 +159,7 @@ if __name__ == '__main__':
 
         # Configure hosts (ifconfig + set r0 as gw)
         info( '*** Configuring host network stacks\n' )
-        hosts = [h0, h1, h2, h3]
+        hosts = [h0, h1, h2]
         i=0
         for h in hosts:
             iface_name = 'h'+str(i)+'-eth0'
