@@ -135,7 +135,7 @@ if __name__ == '__main__':
         itable.add('r0-eth0', '10.0.1.1', '00:00:00:00:01:01', '255.255.255.0') 
         itable.add('r0-eth1', '10.0.2.1', '00:00:00:00:01:02', '255.255.255.0') 
         itable.add('r0-eth2', '10.0.3.1', '00:00:00:00:01:03', '255.255.255.0') 
-        itable.add('r0-eth3', '10.0.4.1', '00:00:00:00:01:04', '255.255.255.0')
+        # itable.add('r0-eth3', '10.0.4.1', '00:00:00:00:01:04', '255.255.255.0')
         itable.createFile(args.itable) 
 
     # Start mininet and configure each of the hosts
