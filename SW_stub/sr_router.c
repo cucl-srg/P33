@@ -29,7 +29,7 @@ void router_init( router_t* router ) {
     }
 #endif
 
-    router->num_interfaces = 1;
+    router->num_interfaces = 0;
 
     router->use_ospf = TRUE;
 
