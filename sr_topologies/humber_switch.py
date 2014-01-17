@@ -19,7 +19,7 @@ TODO check accuracy of routing table entries
 
                           eth0:10.0.2.2
                           +======================+         App Server 1
-                          |  router #1       (eth1) ====== (h1, 10.0.4.2)
+                          |  router #1       (eth1) ====== (h0, 10.0.4.2)
                           |  r1                  | eth1:10.0.4.1
                           +=====(eth0)=====(eth2)+
                                   /          ||    eth2:10.0.6.1
@@ -27,8 +27,8 @@ TODO check accuracy of routing table entries
                                 /            ||
                                /             ||  r0:
                 +============(eth1)==+       ||    eth0: 10.0.1.1
-App Server 0 = (eth0)  router #0     |       ||    eth1: 10.0.2.1
-(h0, 10.0.1.2)  |      r0            |       ||    eth2: 10.0.3.1
+internet ===== (eth0)  router #0     |       ||    eth1: 10.0.2.1
+NAT, s0         |      r0            |       ||    eth2: 10.0.3.1
                 +============(eth2)==+       ||
                                \             ||
                                 \            ||
@@ -37,7 +37,7 @@ App Server 0 = (eth0)  router #0     |       ||    eth1: 10.0.2.1
                           +=====(eth0)=====(eth2)+
                           |  router #2           | eth1:10.0.5.1
                           |  r2              (eth1) ====== App Server 2
-                          +======================+         (h2, 10.0.5.2)
+                          +======================+         (h1, 10.0.5.2)
                           eth0:10.0.3.2
                           
 If started in degenerate switch mode, link r1 <--> r2 is omitted, so that h0
@@ -55,11 +55,9 @@ Without the -s switch, ifaces/MACs/IPs:
     r2-eth0          00:00:00:00:02:01        10.0.3.2
     r2-eth1          00:00:00:00:02:02        10.0.5.1
     r2-eth2          00:00:00:00:02:03        10.0.6.2
-    h0-eth0          00:00:00:00:10:01        10.0.1.2
-    h1-eth0          00:00:00:00:10:02        10.0.4.2
-    h2-eth0          00:00:00:00:10:03        10.0.5.2
-        
-
+    h0-eth0          00:00:00:00:10:01        10.0.4.2
+    h1-eth0          00:00:00:00:10:02        10.0.5.2
+    
 Further development:
    Extract itable and rtable information either directly from mininet or
    create our own network data structure from which we can easily generate them
@@ -94,7 +92,7 @@ class Humber ( Topo ):
         
         # Add the hosts
         
-        # s0 = self.addSwitch( 's0' )
+        s0 = self.addSwitch( 's0' )
         if (mode == Mode.ROUTER):
             info( '*** Creating routers\n')
             r0 = self.addHost( 'r0', ip='10.0.1.1')   # ip of r0-eth0
@@ -109,17 +107,16 @@ class Humber ( Topo ):
             raise Exception('Mode unsupported in humber\n')
             
         info('*** Creating hosts\n')
-        h0 = self.addHost( 'h0', ip='10.0.1.2' )
-        h1 = self.addHost( 'h1', ip='10.0.4.2' )
-	h2 = self.addHost( 'h2', ip='10.0.5.2' )        
-
+        h0 = self.addHost( 'h0', ip='10.0.4.2' )
+        h1 = self.addHost( 'h1', ip='10.0.5.2' )
+        
         # Add the links
         info ('*** Creating links\n')
-        self.addLink( h0, r0 )      # r0 <==> s0 (NAT)
+        self.addLink( s0, r0 )      # r0 <==> s0 (NAT)
         self.addLink( r0, r1 )      # r0 <==> r1
         self.addLink( r0, r2 )      # r0 <==> r2
-        self.addLink( r1, h1 )      # r1 <==> h0 (app server 1) 
-        self.addLink( r2, h2 )      # r2 <==> h1 (app server 2)
+        self.addLink( r1, h0 )      # r1 <==> h0 (app server 1) 
+        self.addLink( r2, h1 )      # r2 <==> h1 (app server 2)
         if (mode == Mode.ROUTER): 
             self.addLink( r1, r2 )  # r1 <==> r2 (complete the routing loop) 
         
@@ -235,9 +232,9 @@ if __name__ == '__main__':
         r2_rtable.createFile('r2-'+args.rtable)        
 
     # NAT to _the internet_
-    #if (not args.nointernet):
-    #    info( '*** Connecting to the internet (think dial-up modem sound)\n')
-    #    rootnode = connectToInternet( net, switch='s0' )
+    if (not args.nointernet):
+        info( '*** Connecting to the internet (think dial-up modem sound)\n')
+        rootnode = connectToInternet( net, switch='s0' )
     
     # Start mininet and configure each of the hosts
     # (order in list is alphabetical order)
@@ -245,8 +242,8 @@ if __name__ == '__main__':
     
     # Do router mode configuration
     if (not args.switch):
-        r0, r1, r2, h0, h1, h2 = net.hosts[3], net.hosts[4], \
-                             net.hosts[5], net.hosts[0], net.hosts[1], net.hosts[2] 
+        r0, r1, r2, h0, h1 = net.hosts[2], net.hosts[3], \
+                             net.hosts[4], net.hosts[0], net.hosts[1] 
 
         # Configure r0 (let the student's code override the Linux network stack &
         #               set MAC addresses of interfaces)
@@ -265,32 +262,19 @@ if __name__ == '__main__':
     
         # Configure hosts (ifconfig + set correct router as gw)
         info( '*** Configuring application server network stacks\n' )
-        hosts = [h0, h1, h2]
+        hosts = [h0, h1]
         g=0
         for h in hosts:
-	    if g == 0:
-		iface_name = 'h'+str(g)+'-eth0'
-                host_mac = '00:00:00:00:10:0'+str(g+1)
-                host_ip = '10.0.'+str(g+1)+'.2'
-                router_ip = '10.0.'+str(g+1)+'.1'
-                h.intf(iface_name).setMAC( host_mac )
-                h.cmd('ifconfig %(iface)s %(ip)s netmask 255.255.255.255 broadcast 10.255.255.255'\
+            iface_name = 'h'+str(g)+'-eth0'
+            host_mac = '00:00:00:00:00:0'+str(g+1)
+            host_ip = '10.0.'+str(g+4)+'.2'
+            router_ip = '10.0.'+str(g+4)+'.1'
+            h.intf(iface_name).setMAC( host_mac )
+            h.cmd('ifconfig %(iface)s %(ip)s netmask 255.255.255.255 broadcast 10.255.255.255'\
                   % {'iface': iface_name, 'ip': host_ip})
-                h.cmd( 'route add -host %(ip)s dev %(iface)s' \
+            h.cmd( 'route add -host %(ip)s dev %(iface)s' \
                    % {'ip': router_ip, 'iface': iface_name})
-                h.cmd( 'route add default gw %(ip)s %(iface)s' \
-                   % {'ip': router_ip, 'iface': iface_name})
-	    else:
-                iface_name = 'h'+str(g)+'-eth0'
-                host_mac = '00:00:00:00:10:0'+str(g+1)
-                host_ip = '10.0.'+str(g+3)+'.2'
-                router_ip = '10.0.'+str(g+3)+'.1'
-                h.intf(iface_name).setMAC( host_mac )
-                h.cmd('ifconfig %(iface)s %(ip)s netmask 255.255.255.255 broadcast 10.255.255.255'\
-                  % {'iface': iface_name, 'ip': host_ip})
-                h.cmd( 'route add -host %(ip)s dev %(iface)s' \
-                   % {'ip': router_ip, 'iface': iface_name})
-                h.cmd( 'route add default gw %(ip)s %(iface)s' \
+            h.cmd( 'route add default gw %(ip)s %(iface)s' \
                    % {'ip': router_ip, 'iface': iface_name})
             g=g+1
 
@@ -300,4 +284,7 @@ if __name__ == '__main__':
     CLI( net )
 
     info( '*** Stopping mininet\n' )
+    if (not args.nointernet):
+        stopNAT( rootnode )
     net.stop()
+
