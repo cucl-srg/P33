@@ -89,6 +89,15 @@ void cli_ping_request( router_t* rtr, int fd, addr_ip_t ip ) {
 
     /* send the echo request (via the router directly ...) */
     ip_to_string( str_ip, ip );
+  /*  if( (src_ip=sr_integ_findsrcip(ip)) )
+        icmp_send( rtr, ip, src_ip, NULL, 0,
+                   ICMP_TYPE_ECHO_REQUEST, 0, htons(PING_ID), htons(ping_count) );
+    else {
+        pthread_mutex_unlock( &ping_list_lock );
+        writenf( fd, "Error: cannot find route to %s\n", str_ip );
+        return;
+    }*/  
+
 
     /* create the ping request */
     p_new = malloc_or_die( sizeof(ping_t) );
