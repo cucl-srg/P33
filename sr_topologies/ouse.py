@@ -2,7 +2,6 @@
 
 '''
 File: ouse.py
-Date: 20 August MMXIII
 Author: Georgina Kalogeridou University of Cambridge
 
 
